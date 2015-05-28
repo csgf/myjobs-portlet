@@ -1,0 +1,339 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml">
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+        <title>GeoMap Epikh Secondments</title> 
+        <link rel="stylesheet" href="http://wiki.epikh.eu/cv/style.css" type="text/css" />  
+        <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAf0XVt7OcxNEckxrtPFZfrhSQ5P-t7N0zcMvzRQgj1_8reVQTOBTqPrKS7k_YOoQuuL_BigLOGzNkIg&sensor=true"
+        type="text/javascript"/>
+        <script type="text/javascript">
+            function TextualControl() {
+            }
+            TextualControl.prototype = new GControl();
+
+            // Creates a one DIV for each of the buttons and places them in a container
+            // DIV which is returned as our control element. We add the control to
+            // to the map container and return the element for the map class to
+            // position properly.
+            TextualControl.prototype.initialize = function(map) {
+                var container = document.createElement("div");
+
+                var zoomInDiv = document.createElement("div");
+                this.setButtonStyle_(zoomInDiv);
+                container.appendChild(zoomInDiv);
+                zoomInDiv.appendChild(document.createTextNode("Earth"));
+                GEvent.addDomListener(zoomInDiv, "click", function() {
+                    location.href = "http://wiki.epikh.eu/index.php?option=com_content&view=article&id=217&Itemid=227"; 
+                });
+                map.getContainer().appendChild(container);
+                return container;
+            }
+
+            TextualControl.prototype.getDefaultPosition = function() {
+                return new GControlPosition(G_ANCHOR_TOP_LEFT, new GSize(840, 35));
+            }
+
+            // Sets the proper CSS for the given button element.
+            TextualControl.prototype.setButtonStyle_ = function(button) {
+                button.style.textDecoration = "underline";
+                button.style.color = "#0000cc";
+                button.style.backgroundColor = "white";
+                button.style.font = "small Arial";
+                button.style.border = "1px solid black";
+                button.style.padding = "2px";
+                button.style.marginBottom = "3px";
+                button.style.textAlign = "center";
+                button.style.width = "6em";
+                button.style.cursor = "pointer";
+            }
+   
+
+
+            function initialize() {
+                if (GBrowserIsCompatible()) {
+                    var map = new GMap2(document.getElementById("map_canvas"));
+                    map.setCenter(new GLatLng(20,0), 2);
+                    map.setUIToDefault();
+                    //map.addControl(new TextualControl());
+                    var latlng = new GLatLng(0,0);
+	
+                    var uiIcon = new GIcon(G_DEFAULT_ICON);
+	
+                    uiIcon.image = "signal.png";
+
+                        <?
+	 
+                    $id_connessione=mysql_connect ("localhost","epikh_user", "epikh_user") or die("Connessione non riuscita");
+                    mysql_select_db("epikh_cv");
+                    $query = "SELECT * FROM partners";
+                    //echo $query;
+                    $risultato = mysql_query($query) or die("Errore query");  
+                    $cont=-1;
+                    while($res=mysql_fetch_row($risultato))
+                    {
+                        $cont++;
+                        $dati[$res[0]]['eu']=$res[4];
+                        $dati[$res[0]]['shortname']=$res[3];
+                        $dati[$res[0]]['latitude']=$res[5];
+                        $dati[$res[0]]['longitude']=$res[6];
+                        //echo("//alert(\"" . $res[5] . " " . $res[6] . "\");");      
+                            ?> 
+
+                     latlng = new GLatLng(<? echo $res[5]; ?>,<? echo $res[6]; ?>);
+                        <? if ((trim($res[4]))=="EU")   
+                             {
+                                ?>
+                                mk<? echo $cont;?>= new GMarker(latlng)
+                                
+                                <? }
+                                else
+                             {
+                                ?>
+                                mk<? echo $cont;?>= new GMarker(latlng);
+                                <? } ?>
+
+                            <? if (($res[3] != "COMETA") and ($res[3] != "CEFET-RJ")) { ?>
+                                map.addOverlay(mk<? echo $cont; ?>);
+                                <? } ?>
+                            GEvent.addListener(mk<? echo $cont; ?>, 'click', function() {
+                                <? if (($res[3] != "UFRJ") and ($res[3] != "INFN-Catania")) { ?>
+                                    map.openInfoWindowHtml(new GLatLng(<? echo $res[5]; ?>, <? echo $res[6]; ?>), "<? echo "<p align=center><font size=4><b>EPIKH partner:</b></font><br><font size=3><a href='" . $res[7] . "'> " . $res[3] . " </a></font></p>"; ?>");
+                                    <? } else
+                            {
+
+                                if ($res[3] == "INFN-Catania") { ?>
+                                        map.openInfoWindowHtml(new GLatLng(<? echo $res[5]; ?>, <? echo $res[6]; ?>), "<? echo "<p align=center><font size=4><b>EPIKH partners:</b></font><br>COMETA<br><font size=3><a href='" . $res[7] . "'> " . $res[3] . " </a></font></p>"; ?>");
+                                        <? } ?>
+                                    <? if ($res[3] == "UFRJ") { ?>
+                                        map.openInfoWindowHtml(new GLatLng(<? echo $res[5]; ?>, <? echo $res[6]; ?>), "<? echo "<p align=center><font size=4><b>EPIKH partners:</b></font><br><a href='http://wiki.epikh.eu/index.php?option=com_content&view=article&id=182:general-description&catid=52&Itemid=202'>CEFET-RJ</a><br><font size=3><a href='" . $res[7] . "'> " . $res[3] . " </a></font></p>"; ?>");
+                                        <?  } ?>
+                                    <?
+                                }
+                                ?>
+
+                            });
+                            <?
+                        }
+                        ?>
+	
+                        <?
+
+                        echo("//alert(\"" . $dati[2]['latitude'] . " " . $dati[2]['longitude'] . "\");");
+                    //$query = "SELECT FromID,toID,Surname,Name,IDpersona FROM  secondments, movements, people where secondments.IDsec = movements.IDsecondment and IDpersona=people.IDperson";
+                    $query = "SELECT DISTINCT FromID, toID FROM  secondments where status='DONE' or status='RUNNING'";
+                    //echo $query;
+                    $risultato = mysql_query($query) or die("Errore query");  
+                    $cnt=-1;
+                    while($res=mysql_fetch_row($risultato))
+                    {
+                        $cnt++;
+
+                            ?>
+	
+                            <?
+                            if (trim($dati[$res[0]]['eu'])=="EU")
+                        {
+                            $from_lt=$dati[$res[0]]['latitude'];
+                            $from_lg=$dati[$res[0]]['longitude']-0;
+                            $to_lt=$dati[$res[1]]['latitude'];
+                            $to_lg=$dati[$res[1]]['longitude']-0;
+                        }
+                        else
+                        {
+                            $from_lt=$dati[$res[0]]['latitude'];
+                            $from_lg=$dati[$res[0]]['longitude']+0;
+                            $to_lt=$dati[$res[1]]['latitude'];
+                            $to_lg=$dati[$res[1]]['longitude']+0;
+	  
+                            if ($res[0]==7)
+                            {
+                                //$from_lt=$dati[$res[0]]['latitude']+2;
+                                //$to_lt=$dati[$res[1]]['latitude']-2;
+                                $from_lt=$dati[$res[0]]['latitude']+3;
+                                $to_lt=$dati[$res[1]]['latitude'];
+                            }
+	  
+	  
+                            if ($res[0]==14)
+                            {
+                                //$from_lt=$dati[$res[0]]['latitude']+2;
+                                //$to_lt=$dati[$res[1]]['latitude']-2;
+                                $from_lt=$dati[$res[0]]['latitude']-3;
+                                $to_lt=$dati[$res[1]]['latitude'];
+                            }
+	  
+                        }
+	  
+                        $center_lt=($from_lt + $to_lt)/2;
+                        $center_lg=($from_lg + $to_lg)/2;
+                        if (($res[0]!=1) and ($res[1]!=1))
+                        {  
+                                ?>
+	
+                                var polyline<? echo $cnt; ?> = new GPolyline([
+                                new GLatLng(<? echo $from_lt; ?>, <? echo $from_lg; ?>),
+                                new GLatLng(<? echo $to_lt; ?>, <? echo $to_lg; ?>)
+                            ], "#000000", 4);
+                            map.addOverlay(polyline<? echo $cnt; ?>);
+
+                                <?
+                                //TOGLIERE da $risultato le coppie toID - fromID per evitare sovrapposizione di linee
+	
+                            if (($res[0]!=21) and ($res[1]!=21))
+                            {
+                                $query1="SELECT IDsec FROM  secondments where ((FromID=" . $res[0] . " and ToID=" . $res[1] . ") OR (FromID=" . $res[1] . " and ToID=" . $res[0] . ")) and (status='DONE' or status='RUNNING')";
+                            }
+                            else
+                            {
+                                if ($res[0]==21)
+                                    $query1="SELECT IDsec FROM  secondments where ((FromID=" . $res[0] . " and ToID=" . $res[1] . ") OR (FromID=" . $res[1] . " and ToID=" . $res[0] . ") OR (FromID=1 and ToID=" . $res[1] . ") OR (FromID=" . $res[1] . " and ToID=1)) and (status='DONE' or status='RUNNING');";
+                                else
+                                    $query1="SELECT IDsec FROM  secondments where ((FromID=" . $res[0] . " and ToID=" . $res[1] . ") OR (FromID=" . $res[1] . " and ToID=" . $res[0] . ") OR (FromID=1 and ToID=" . $res[0] . ") OR (FromID=" . $res[0] . " and ToID=1)) and (status='DONE' or status='RUNNING');";
+                            }
+                            $risult = mysql_query($query1) or die("Errore query");  
+                            echo "// " . $query1 . "\n";
+                            $str="<p align=center><font size=4><b>EPIKH secondments:</b></font><br>";
+                            while($rex=mysql_fetch_row($risult))
+                            {
+                                $qname="SELECT ShortName FROM partners WHERE id=(SELECT FromID FROM secondments WHERE IDsec=" . $rex[0] . ");";
+                                $r1 = mysql_query($qname) or die("Errore query");  
+                                $from=mysql_fetch_row($r1);
+                                $qname="SELECT ShortName FROM partners WHERE id=(SELECT ToID FROM secondments WHERE IDsec=" . $rex[0] . ");";
+                                $r2 = mysql_query($qname) or die("Errore query");  
+                                $to=mysql_fetch_row($r2);
+	 
+                                $str=$str . "<div align=center>From " .  $from[0] . " to " . $to[0] . "</div>";
+                                //$str="<p align=center><font size=4><b>EPIKH secondment:</b></font><br>From " .  $from[0] . " to " . $to[0] . "<br>";
+	
+                                $q1="SELECT id_cv,Name, Surname, in_sede FROM candidate INNER JOIN movements ON candidate.id_cv = movements.IDpersona WHERE candidate.status='y' and movements.IDsecondment =" . $rex[0] . " ORDER BY candidate.Surname";
+	 
+                                $risu = mysql_query($q1) or die("Errore query");  
+                                while($named=mysql_fetch_row($risu))
+                                {
+	
+                                    if ($named[3]==1)
+                                        $str=$str . "<div align=center><a href=http://wiki.epikh.eu/staff/research_details.php?ID=" . $named[0] . "><font color=red>" . $named[1] . " " . $named[2] . "</font></a></div>";
+                                    else
+                                        $str=$str . "<div align=center><a href=http://wiki.epikh.eu/staff/research_details.php?ID=" . $named[0] . ">" . $named[1] . " " . $named[2] . "</a></div>";
+				
+                                    //$str=$str . "<div align=center><a href=http://wiki.epikh.eu/staff/research_details.php?ID=" . $named[0] . ">" . $named[1] . " " . $named[2] . "</a></div>";
+                                }
+                                $str=$str . "</p>";
+                            } 
+
+	
+	
+
+	
+                                ?>
+
+                                GEvent.addListener(polyline<? echo $cnt;?>, 'click', function() {
+                                //alert('you clicked polyline');
+                                map.openInfoWindowHtml(new GLatLng( <? echo $center_lt; ?>, <? echo $center_lg; ?>), "<? echo $str; ?>");
+                            });
+
+                                <?
+                            }
+                        else
+                        { //vedo se per la coppia che include cometa come sorgente o destinazione c'? qualcun altro approvato per INFN-CT con la stessa seconda meta
+                            if ($res[0]==1)
+                            {
+                                $dest=$res[1];
+                            }
+                            else
+                            {
+                                $dest=$res[0];
+                            }
+		
+                            $queryx = "SELECT DISTINCT FromID, toID FROM  secondments where status='DONE' or status='RUNNING'";
+                            //echo $query;
+                            $risultat = mysql_query($queryx) or die("Errore query");  
+                            $cntx=0;
+                            while($rep=mysql_fetch_row($risultat))
+                            {
+                                if ((($rep[0]==$dest) and ($rep[1]==21)) or (($rep[0]==21) and ($rep[1]==$dest)))
+                                    $cntx++;
+                            }
+                            if ($cntx==0)
+                            {
+                                //$cnt++;
+	
+                                    ?>
+	
+                                    var polyline<? echo $cnt; ?> = new GPolyline([
+                                    new GLatLng(<? echo $from_lt; ?>, <? echo $from_lg; ?>),
+                                    new GLatLng(<? echo $to_lt; ?>, <? echo $to_lg; ?>)
+                                ], "#000000", 4);
+                                map.addOverlay(polyline<? echo $cnt; ?>);
+
+                                    <?
+                                    //TOGLIERE da $risultato le coppie toID - fromID per evitare sovrapposizione di linee
+	
+	
+                                $query1="SELECT IDsec FROM  secondments where ((FromID=" . $res[0] . " and ToID=" . $res[1] . ") OR (FromID=" . $res[1] . " and ToID=" . $res[0] . ")) and (status='DONE' or status='RUNNING')";
+	
+                                $risult = mysql_query($query1) or die("Errore query");  
+                                echo "// " . $query1 . "\n";
+                                $str="<p align=center><font size=4><b>EPIKH secondments:</b></font><br>";
+                                while($rex=mysql_fetch_row($risult))
+                                {
+                                    $qname="SELECT ShortName FROM partners WHERE id=(SELECT FromID FROM secondments WHERE IDsec=" . $rex[0] . ");";
+                                    $r1 = mysql_query($qname) or die("Errore query");  
+                                    $from=mysql_fetch_row($r1);
+                                    $qname="SELECT ShortName FROM partners WHERE id=(SELECT ToID FROM secondments WHERE IDsec=" . $rex[0] . ");";
+                                    $r2 = mysql_query($qname) or die("Errore query");  
+                                    $to=mysql_fetch_row($r2);
+	 
+                                    $str=$str . "<div align=center>From " .  $from[0] . " to " . $to[0] . "</div>";
+                                    //$str="<p align=center><font size=4><b>EPIKH secondment:</b></font><br>From " .  $from[0] . " to " . $to[0] . "<br>";
+	
+                                    $q1="SELECT id_cv,Name, Surname, in_sede FROM candidate INNER JOIN movements ON candidate.id_cv = movements.IDpersona WHERE candidate.status='y' and movements.IDsecondment =" . $rex[0] . "";
+	 
+                                    $risu = mysql_query($q1) or die("Errore query");  
+                                    while($named=mysql_fetch_row($risu))
+                                    {
+                                        if ($named[3]==1)
+                                            $str=$str . "<div align=center><a href=http://wiki.epikh.eu/staff/research_details.php?ID=" . $named[0] . "><font color=red>" . $named[1] . " " . $named[2] . "</font></a></div>";
+                                        else
+                                            $str=$str . "<div align=center><a href=http://wiki.epikh.eu/staff/research_details.php?ID=" . $named[0] . ">" . $named[1] . " " . $named[2] . "</a></div>";
+		
+                                    }
+                                    $str=$str . "</p>";
+                                } 
+
+	
+	
+
+	
+                                    ?>
+
+                                    GEvent.addListener(polyline<? echo $cnt;?>, 'click', function() {
+                                    //alert('you clicked polyline');
+                                    map.openInfoWindowHtml(new GLatLng( <? echo $center_lt; ?>, <? echo $center_lg; ?>), "<? echo $str; ?>");
+                                });
+
+                                    <?
+                                }
+	
+	
+	
+                        }
+
+
+                    }
+                        ?>
+                    }
+            }  
+        </script>
+    </head>
+
+    <body onload="initialize()" onunload="GUnload()">
+        <div class="message">The map below shows the geographic distributions of the EPIKH 
+            secondments. <br>Blue markers refer to European EPIKH partners while red 
+                markers refer to the non-European ones. <br>Lines refer to the transfers 
+                    corresponding to the secondments.<br> To get more information, please click 
+                        the mouse either on the markers or on the lines. </div>   <div id="map_canvas" style="width: 930px; height: 530px"></div>
+                        <div id="message"></div>
+                        </body>
+                        </html>

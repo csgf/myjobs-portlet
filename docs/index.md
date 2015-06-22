@@ -12,7 +12,7 @@ Watch the Liferay’ server.log file till: ‘MyJobs successfully deployed’
 ### Requirements
 Application registration in the GridOperations table is mandatory for the MyJobs portlet
 
-![GridOperations Table](figures/figure2.png) 
+![GridOperations Table](figures/figura2.png) 
 
 *How to get GridOperations values*
 
@@ -24,8 +24,8 @@ GridOperations values will be carefully selected for production portals
 
 ## Usage
 
-![Job Status](figures/figure1.png)
+![Job Status](figures/figura1.png)
 
-![Job Special](figures/figure3.png)
+![Job Special](figures/figura3.png)
 
 ## Support

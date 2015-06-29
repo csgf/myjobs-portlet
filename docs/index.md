@@ -1,4 +1,4 @@
-# MyJobs Portlet
+# MYJOBS
 
 ## About
 

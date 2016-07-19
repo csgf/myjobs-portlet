@@ -78,7 +78,7 @@
         }
 
         public boolean apply(ActiveInteractions ai) {
-            return value.equals(ai.getInteractionInfos()[1]);
+            return value.equals(ai.getInteractionInfos()[1]) || "FutureGateway".equals(ai.getInteractionInfos()[1]);
         }
         private String value;
     }
@@ -321,12 +321,13 @@ url="<%= url.toString()%>"
                             
                         }
 
-                        if (!ai.getInteractionInfos()[1].equals(company.getName())) {
+                        if (!ai.getInteractionInfos()[1].equals("FutureGateway") && !ai.getInteractionInfos()[1].equals(company.getName())) {
                             continue;
                         }
                         String status = ai.getInteractionInfos()[5];
                         if (status.equals("DONE")) {
-                            String URL = renderRequest.getContextPath() + "/jobOutpuRetrive?mode=single&DBid=" + java.net.URLEncoder.encode(ai.getInteractionInfos()[0], "UTF-8")
+                            
+                            String URL = renderRequest.getContextPath() + "/jobOutpuRetrive?mode=single&futuregateway="+ai.getInteractionInfos()[1].equals("FutureGateway")+"&DBid=" + java.net.URLEncoder.encode(ai.getInteractionInfos()[0], "UTF-8")
                                     + "&Path=" + java.net.URLEncoder.encode("/tmp", "UTF-8");
                             String UrlColl = renderRequest.getContextPath() + "/jobOutpuRetrive?mode=collection&DBid=" + java.net.URLEncoder.encode(ai.getInteractionInfos()[0], "UTF-8")
                                     + "&Path=" + java.net.URLEncoder.encode("/tmp", "UTF-8");
@@ -484,7 +485,7 @@ url="<%= url.toString()%>"
                 
 
                     for (ActiveInteractions aidone : aiListDone) {
-                        if (!aidone.getInteractionInfos()[1].equals(company.getName())) {
+                        if (!aidone.getInteractionInfos()[1].equals("FutureGateway") && !aidone.getInteractionInfos()[1].equals(company.getName())) {
                             continue;
                         }
 

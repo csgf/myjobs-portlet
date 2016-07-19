@@ -29,6 +29,7 @@ import com.liferay.portal.service.UserServiceUtil;
 import com.liferay.portal.util.PortalUtil;
 import it.infn.ct.GridEngine.Job.JSagaJobSubmission;
 import it.infn.ct.GridEngine.JobService.JobCheckStatusService;
+import it.infn.ct.GridEngine.UsersTracking.ActiveInteractions;
 import it.infn.ct.GridEngine.UsersTracking.UsersTrackingDBInterface;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -91,8 +92,16 @@ public class MyJobs extends GenericPortlet {
                 }
             }
 
+            FGMyJobs fgMyJobs = new FGMyJobs("151.97.41.48","8888","v1.0","mtorrisi");
+            fgMyJobs.generateActiveInteractionLists();
+//    System.out.println("DONE list:");
+//            Vector<ActiveInteractions> doneList = fgMyJobs.getJobListDone();
+            Vector<ActiveInteractions> othersList = fgMyJobs.getJobList();
 
-            request.setAttribute("jobList", utdbi.getActiveInteractionsByName(user.getScreenName()));
+//            doneList.addAll(utdbi.getDoneInteractionsByName(user.getScreenName()));
+            othersList.addAll(utdbi.getActiveInteractionsByName(user.getScreenName()));
+
+            request.setAttribute("jobList", othersList);
             request.setAttribute("jobListdone", utdbi.getDoneInteractionsByName(user.getScreenName()));
             request.setAttribute("vo", portletPreferences.getValue("singolo1", ""));
             request.setAttribute("proxy", portletPreferences.getValue("singolo3", ""));

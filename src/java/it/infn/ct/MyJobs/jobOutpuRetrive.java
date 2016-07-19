@@ -34,9 +34,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
-import com.liferay.portal.model.User;
-import com.liferay.portal.service.UserServiceUtil;
-import com.liferay.portal.util.PortalUtil;
 
 /**
  *
@@ -94,7 +91,13 @@ public class jobOutpuRetrive extends HttpServlet {
             if (mode.equals("single")) {
 
                 String DBid = java.net.URLDecoder.decode(request.getParameter("DBid"), "UTF-8");
-                fileName = path + tmpJSaga.getJobOutput(Integer.parseInt(DBid));
+                String futuregateway = java.net.URLDecoder.decode(request.getParameter("futuregateway"), "UTF-8");
+                if(futuregateway.equalsIgnoreCase("true")){
+                    //TODO Add download tgz from FutureGateway
+                    FGMyJobs fGMyJobs = new FGMyJobs("151.97.41.48", "8888", "v1.0", "");
+                    fileName = fGMyJobs.downloadOutputArchive(DBid, path);
+                } else
+                    fileName = path + tmpJSaga.getJobOutput(Integer.parseInt(DBid));
             }
             if (mode.equals("set")) {
                 UsersTrackingDBInterface tracking = new UsersTrackingDBInterface();

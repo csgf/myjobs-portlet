@@ -27,7 +27,6 @@ import com.liferay.portal.model.Company;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.UserServiceUtil;
 import com.liferay.portal.util.PortalUtil;
-import it.infn.ct.GridEngine.Job.JSagaJobSubmission;
 import it.infn.ct.GridEngine.JobService.JobCheckStatusService;
 import it.infn.ct.GridEngine.UsersTracking.ActiveInteractions;
 import it.infn.ct.GridEngine.UsersTracking.UsersTrackingDBInterface;

@@ -21,6 +21,7 @@ package it.infn.ct.MyJobs;
  * the License.
  * **************************************************************************
  */
+import com.liferay.portal.kernel.util.FileUtil;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -61,9 +62,8 @@ public class jobOutpuRetrive extends HttpServlet {
     }
 
     /**
-     * Processes requests for both HTTP
-     * <code>GET</code> and
-     * <code>POST</code> methods.
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
      *
      * @param request servlet request
      * @param response servlet response
@@ -73,9 +73,9 @@ public class jobOutpuRetrive extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
 
+        boolean fg = false;
         String mode = java.net.URLDecoder.decode(request.getParameter("mode"), "UTF-8");
         String path = java.net.URLDecoder.decode(request.getParameter("Path"), "UTF-8");
-        
 
         String fileName = null;
 
@@ -87,17 +87,19 @@ public class jobOutpuRetrive extends HttpServlet {
             UsersTrackingDBInterface tracking = new UsersTrackingDBInterface();
             fileName = tracking.createAllJobsArchive(cn, path);
         } else {
- 
+
             if (mode.equals("single")) {
 
                 String DBid = java.net.URLDecoder.decode(request.getParameter("DBid"), "UTF-8");
                 String futuregateway = java.net.URLDecoder.decode(request.getParameter("futuregateway"), "UTF-8");
-                if(futuregateway.equalsIgnoreCase("true")){
+                if (futuregateway.equalsIgnoreCase("true")) {
+                    fg = true;
                     //TODO Add download tgz from FutureGateway
                     FGMyJobs fGMyJobs = new FGMyJobs("151.97.41.48", "8888", "v1.0", "");
-                    fileName = fGMyJobs.downloadOutputArchive(DBid, path);
-                } else
+                    fileName = fGMyJobs.downloadOutputs(DBid, path);
+                } else {
                     fileName = path + tmpJSaga.getJobOutput(Integer.parseInt(DBid));
+                }
             }
             if (mode.equals("set")) {
                 UsersTrackingDBInterface tracking = new UsersTrackingDBInterface();
@@ -108,12 +110,14 @@ public class jobOutpuRetrive extends HttpServlet {
                 String DBid = java.net.URLDecoder.decode(request.getParameter("DBid"), "UTF-8");
                 fileName = path + tmpJSaga.getCollectionOutput(Integer.parseInt(DBid));
             }
-            
+
         }
-        
+
         File file = new File(fileName);
 
-        if ((!file.isDirectory()) && file.exists() ) {
+        System.out.println("!!!!" + file.getName());
+
+        if ((!file.isDirectory()) && file.exists()) {
 
             String contentType = getServletContext().getMimeType(file.getName());
 
@@ -133,14 +137,17 @@ public class jobOutpuRetrive extends HttpServlet {
                     response.getOutputStream());
 
             fastChannelCopy(inputChannel, outputChannel);
-
+            
+            if (fg) {
+                File hiddenFile = new File(file.getParent() + File.separator + "." + file.getName());
+                FileUtil.move(file, hiddenFile);
+            }
         }
     }
 
 // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
-     * Handles the HTTP
-     * <code>GET</code> method.
+     * Handles the HTTP <code>GET</code> method.
      *
      * @param request servlet request
      * @param response servlet response
@@ -154,8 +161,7 @@ public class jobOutpuRetrive extends HttpServlet {
     }
 
     /**
-     * Handles the HTTP
-     * <code>POST</code> method.
+     * Handles the HTTP <code>POST</code> method.
      *
      * @param request servlet request
      * @param response servlet response

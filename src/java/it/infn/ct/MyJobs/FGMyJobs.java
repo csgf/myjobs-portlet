@@ -45,6 +45,8 @@ import java.net.URLDecoder;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * FGMyJobs class allows to merge GridEngine list of jobs with FutureGateway
@@ -52,6 +54,8 @@ import java.util.Iterator;
  * having outcome JOB
  */
 class FGMyJobs {
+
+    private static final String PATH_SUFFIX = "jobOutput";
 
     private String fgHost;
     private String fgPort;
@@ -211,35 +215,31 @@ class FGMyJobs {
         }
     }
 
-    String downloadOutputArchive(String DBid, String path) {
+    public String downloadOutputs(String DBid, String path) {
         String result = null;
 
         try {
             long taskId = Long.parseLong(DBid);
 
-            JSONObject archive = fgGetArchiveOutput(taskId);
-            if (archive != null) {
-                _log("debug", archive.get("name").toString());
-                URL website = new URL("http://" + fgHost + ":" + fgPort + "/" + fgVer + "/" + archive.get("url").toString());
-                
-                File f = new File(path + "/jobOutput/" + archive.get("name").toString());
-                if (!f.exists()) {
-                    _log("debug", "File: " + f.getName() + " doesn't exist. Downloading from: " + website);
-                    ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-                    FileOutputStream fos = new FileOutputStream(path + "/jobOutput/" + archive.get("name").toString());
-                    fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-                }
-                result = path + "/jobOutput/" + archive.get("name").toString();
-
-            } else {
-                throw new Exception("Archive URL not found for task: " + taskId);
-            }
+            result = createOutputArchive(taskId, path);
+//            if (archive != null) {
+//                _log("debug", archive.get("name").toString());
+//                URL website = new URL("http://" + fgHost + ":" + fgPort + "/" + fgVer + "/" + archive.get("url").toString());
+//
+//                File f = new File(path + "/" + PATH_SUFFIX + "/" + archive.get("name").toString());
+//                if (!f.exists()) {
+//                    _log("debug", "File: " + f.getName() + " doesn't exist. Downloading from: " + website);
+//                    ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+//                    FileOutputStream fos = new FileOutputStream(path + "/" + PATH_SUFFIX + "/" + archive.get("name").toString());
+//                    fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+//                }
+//                result = path + "/" + PATH_SUFFIX + "/" + archive.get("name").toString();
+//
+//            } else {
+//                throw new Exception("Archive URL not found for task: " + taskId);
+//            }
 
         } catch (NumberFormatException ex) {
-            _log("error", ex.getMessage());
-        } catch (MalformedURLException ex) {
-            _log("error", ex.getMessage());
-        } catch (IOException ex) {
             _log("error", ex.getMessage());
         } catch (Exception ex) {
             _log("error", ex.getMessage());
@@ -248,8 +248,8 @@ class FGMyJobs {
         return result;
     }
 
-    private JSONObject fgGetArchiveOutput(long taskId) {
-        JSONObject result = null;
+    private String createOutputArchive(long taskId, String path) {
+        String result = null;
         JSONParser parser = new JSONParser();
         JSONObject jsonObject = null;
         StringBuilder fgTaskInfo = new StringBuilder();
@@ -275,18 +275,39 @@ class FGMyJobs {
 
             JSONArray jsonArray = (JSONArray) jsonObject.get("output_files");
 
-            for (Iterator it = jsonArray.iterator(); it.hasNext();) {
-                JSONObject jsonOutput = (JSONObject) it.next();
-                _log("debug", "name=" + jsonOutput.get("name").toString());
-                if (jsonOutput.get("name").toString().contains("gz")) {
-                    result = jsonOutput;
+            File jobOutputFolder = new File(path + File.separator + PATH_SUFFIX);
+            if (!jobOutputFolder.exists()) {
+                jobOutputFolder.mkdirs();
+            }
+            File outputArchive = new File(path + File.separator + PATH_SUFFIX + File.separator + taskId + ".tgz");
+            if (!outputArchive.exists()) {
+                File jobOutputDirectory = new File(jobOutputFolder + File.separator + taskId);
+                if (jobOutputDirectory.mkdirs()) {
+                    for (Iterator it = jsonArray.iterator(); it.hasNext();) {
+                        JSONObject jsonOutput = (JSONObject) it.next();
+                        URL website = new URL("http://" + fgHost + ":" + fgPort + "/" + fgVer + "/" + jsonOutput.get("url").toString());
+                        _log("debug", "Downloading: " + jsonOutput.get("name"));
+                        ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+                        FileOutputStream fos = new FileOutputStream(jobOutputDirectory + File.separator + jsonOutput.get("name").toString());
+                        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                    }
+                    Process creatingTar = Runtime.getRuntime().exec("tar czvf " + outputArchive + " --directory=" + jobOutputDirectory.getAbsolutePath() + " .");
+                    creatingTar.waitFor();
+                    Process deleteFolder = Runtime.getRuntime().exec("rm -Rf " + jobOutputDirectory.getAbsolutePath());
+                    deleteFolder.waitFor();
+                } else {
+                    _log("error", "error creating " + jobOutputDirectory.getAbsolutePath());
                 }
             }
+
+            result = outputArchive.getAbsolutePath();
 
         } catch (ParseException pex) {
             _log("error", pex.getMessage());
         } catch (IOException ioex) {
             _log("error", ioex.getMessage());
+        } catch (InterruptedException ex) {
+            _log("error", ex.getMessage());
         }
 
         return result;

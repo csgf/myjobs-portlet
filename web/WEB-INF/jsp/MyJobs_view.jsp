@@ -48,6 +48,7 @@
 <%@page import="javax.portlet.*"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@taglib prefix="liferay-ui" uri="http://liferay.com/tld/ui" %>
+<%@taglib prefix="aui" uri="http://liferay.com/tld/aui"%>
 <%@taglib prefix="portlet" uri="http://java.sun.com/portlet_2_0" %>
 <portlet:defineObjects />
 <style type="text/css">
@@ -101,7 +102,6 @@
     Vector<ActiveInteractions> aiListDone = (Vector<ActiveInteractions>) request.getAttribute("jobListdone");
     Company company = PortalUtil.getCompany(request);
     String fgError = (String) request.getAttribute("fg-error");
-    System.out.println("CICCIO: " + fgError);
 %>
 
 <liferay-ui:tabs
@@ -262,6 +262,27 @@ url="<%= url.toString()%>"
            
             
         </script>
+<aui:script>
+    Liferay.provide(
+	window,
+	'openPopUp',
+	function() {
+		var A = AUI(); 	
+		var dialog = new A.Dialog(
+			{
+                                bodyContent: '<p>Your download will start soon.</p>',
+				destroyOnClose: true,
+                                centered: true,
+                                resizable: false,
+				modal: true,
+				title: 'Download',
+				width: 200
+			}
+		).render();
+	},
+	['aui-dialog']
+    ); 
+</aui:script>
         <%
             boolean supportsGateway = false;
 
@@ -359,7 +380,7 @@ url="<%= url.toString()%>"
                         %>
                         <a href="<%=UrlColl%>"><img   onmouseover=""src="<%=renderRequest.getContextPath()%>/datatables/media/images/download.png" width="24" height="24" /></a></td>
                     <% } else {%>
-                         <a href="<%=URL%>"><img onmouseover=""src="<%=renderRequest.getContextPath()%>/datatables/media/images/download.png" width="24" height="24" /></a></td>   
+                        <a href="<%=URL%>"><img onmouseover="" onclick="openPopUp()" src="<%=renderRequest.getContextPath()%>/datatables/media/images/download.png" width="24" height="24" /></a></td>   
                     <% }%>
                 </tr>
                 <%

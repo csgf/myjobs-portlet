@@ -100,12 +100,20 @@
     Vector<ActiveInteractions> aiList = (Vector<ActiveInteractions>) request.getAttribute("jobList");
     Vector<ActiveInteractions> aiListDone = (Vector<ActiveInteractions>) request.getAttribute("jobListdone");
     Company company = PortalUtil.getCompany(request);
+    String fgError = (String) request.getAttribute("fg-error");
+    System.out.println("CICCIO: " + fgError);
 %>
 
 <liferay-ui:tabs
 names="<%= tabNames%>"
 url="<%= url.toString()%>"
     />
+
+<c:if test="<%=!fgError.isEmpty()%>">
+    <div class="portlet-msg-info">
+        <liferay-ui:message key="Unable to contact Futuregateway" />
+    </div>
+</c:if>
 <c:choose>
     <c:when test="${tabs1 == 'Active Jobs List'}" >
         <script type="text/javascript">

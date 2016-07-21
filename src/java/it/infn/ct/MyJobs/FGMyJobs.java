@@ -53,7 +53,7 @@ import java.util.logging.Logger;
  * list of tasks reported tasks will be only the ones related to an application
  * having outcome JOB
  */
-class FGMyJobs {
+public class FGMyJobs {
 
     private static final String PATH_SUFFIX = "jobOutput";
 
@@ -94,124 +94,88 @@ class FGMyJobs {
     }
 
     // This funciton retrieves the list of jobs from the GridEngine
-    public JSONObject fgJobInfoList() {
-        JSONParser parser = new JSONParser();
-        JSONObject jsonObject = null;
-        StringBuilder fgAppInfo = new StringBuilder();
-        HttpURLConnection conn;
-        try {
-            String fgURL = "http://" + fgHost + ":" + fgPort + "/" + fgVer + "/tasks?user=" + fgUser;
-            _log("debug", "fgURL=" + fgURL);
-            URL deploymentEndpoint = new URL(fgURL);
-            conn = (HttpURLConnection) deploymentEndpoint.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("charset", "utf-8");
-            if (conn.getResponseCode() == 200) {
-                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String ln;
-                while ((ln = br.readLine()) != null) {
-                    fgAppInfo.append(ln);
-                }
-            } else {
-                _log("debug", "response code: " + conn.getResponseCode());
-            }
-            jsonObject = (JSONObject) parser.parse(fgAppInfo.toString());
-        } catch (ParseException pex) {
-        } catch (IOException ioex) {
-        }
-        return jsonObject;
+    public JSONObject fgJobInfoList() throws FuturegatewayException {
+        String fgURL = "http://" + fgHost + ":" + fgPort + "/" + fgVer + "/tasks?user=" + fgUser;
+        _log("debug", "fgURL=" + fgURL);
+        return callFutureGateway(fgURL);
     }
 
     // This funciton retrieves the list of jobs from the GridEngine
-    public JSONObject fgAppInfo(String app_id) {
-        JSONParser parser = new JSONParser();
-        JSONObject jsonObject = null;
-        StringBuilder fgAppInfo = new StringBuilder();
-        HttpURLConnection conn;
-        try {
-            URL deploymentEndpoint = new URL("http://" + fgHost + ":" + fgPort + "/" + fgVer + "/applications/" + app_id + "?user=" + fgUser);
-            conn = (HttpURLConnection) deploymentEndpoint.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("charset", "utf-8");
-            if (conn.getResponseCode() == 200) {
-                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String ln;
-                while ((ln = br.readLine()) != null) {
-                    fgAppInfo.append(ln);
-                }
-            }
-            jsonObject = (JSONObject) parser.parse(fgAppInfo.toString());
-        } catch (ParseException pex) {
-        } catch (IOException ioex) {
-        }
-        return jsonObject;
+    public JSONObject fgAppInfo(String app_id) throws FuturegatewayException {
+        String fgURL = "http://" + fgHost + ":" + fgPort + "/" + fgVer + "/applications/" + app_id + "?user=" + fgUser;
+        _log("debug", "fgURL=" + fgURL);
+        return callFutureGateway(fgURL);
     }
 
     // Translate the incoming FutureGateway tasks list into a vector of
     // ActiveInteractions classes
-    public void generateActiveInteractionLists() {
+    public void generateActiveInteractionLists() throws FuturegatewayException {
         jobList = new Vector<ActiveInteractions>();
         jobListdone = new Vector<ActiveInteractions>();
         JSONObject taskList = fgJobInfoList();
-        JSONArray taskArray = (JSONArray) taskList.get("tasks");
-        for (int i = 0; i < taskArray.size(); i++) {
-            JSONObject taskInfo = (JSONObject) taskArray.get(i);
-            String status = (String) taskInfo.get("status");
-            String app_id = (String) taskInfo.get("application");
-            String last_change = (String) taskInfo.get("last_change");
-            // Retrieve Application info
-            JSONObject appInfo = fgAppInfo(app_id);
-            String task_id = (String) taskInfo.get("id");
-            String app_name = (String) appInfo.get("name");
-            String app_desc = (String) appInfo.get("description");
-            String outcome = (String) appInfo.get("outcome");
-            _log("debug",
-                    "status: '" + status + "' "
-                    + "outcome: '" + outcome + "' "
-                    + "app_name: '" + app_name + "' "
-                    + "app_desc: '" + app_desc + "' ");
-            String ai_info[] = new String[6];
-            ai_info[0] = task_id; //77"0"; // Collection
-            ai_info[1] = "FutureGateway"; // Portal
-            ai_info[2] = app_name; // Application
-            ai_info[3] = app_desc; // Description
-            ai_info[4] = last_change; // Timestamp
-            ai_info[5] = status; // Statu
-            ActiveInteractions ai = new ActiveInteractions(ai_info, null);
-            if (outcome.equals("JOB")) {
-                jobList.add(ai);
+        if (taskList != null) {
+            JSONArray taskArray = (JSONArray) taskList.get("tasks");
+            for (int i = 0; i < taskArray.size(); i++) {
+                JSONObject taskInfo = (JSONObject) taskArray.get(i);
+                String status = (String) taskInfo.get("status");
+                String app_id = (String) taskInfo.get("application");
+                String last_change = (String) taskInfo.get("last_change");
+                // Retrieve Application info
+                JSONObject appInfo = fgAppInfo(app_id);
+                String task_id = (String) taskInfo.get("id");
+                String app_name = (String) appInfo.get("name");
+                String app_desc = (String) appInfo.get("description");
+                String outcome = (String) appInfo.get("outcome");
+                _log("debug",
+                        "status: '" + status + "' "
+                        + "outcome: '" + outcome + "' "
+                        + "app_name: '" + app_name + "' "
+                        + "app_desc: '" + app_desc + "' ");
+                String ai_info[] = new String[6];
+                ai_info[0] = task_id; //77"0"; // Collection
+                ai_info[1] = "FutureGateway"; // Portal
+                ai_info[2] = app_name; // Application
+                ai_info[3] = app_desc; // Description
+                ai_info[4] = last_change; // Timestamp
+                ai_info[5] = status; // Statu
+                ActiveInteractions ai = new ActiveInteractions(ai_info, null);
+                if (outcome.equals("JOB")) {
+                    jobList.add(ai);
+                }
             }
         }
     }
 
     public static void main(String args[]) {
-        FGMyJobs fgMyJobs = new FGMyJobs("151.97.41.48", "8888", "v1.0", "mtorrisi");
-        fgMyJobs.generateActiveInteractionLists();
-        System.out.println("DONE list:");
-        Vector<ActiveInteractions> doneList = fgMyJobs.getJobListDone();
-        for (Enumeration e = doneList.elements(); e.hasMoreElements();) {
-            ActiveInteractions ai = (ActiveInteractions) e.nextElement();
-            String ai_info[] = ai.getInteractionInfos();
-            System.out.println("<'" + ai_info[0] + "'>"
-                    + "<'" + ai_info[1] + "'>"
-                    + "<'" + ai_info[2] + "'>"
-                    + "<'" + ai_info[3] + "'>"
-                    + "<'" + ai_info[4] + "'>"
-                    + "<'" + ai_info[5] + "'>");
-        }
-        System.out.println("Others:");
-        Vector<ActiveInteractions> othersList = fgMyJobs.getJobList();
-        for (Enumeration e = othersList.elements(); e.hasMoreElements();) {
-            ActiveInteractions ai = (ActiveInteractions) e.nextElement();
-            String ai_info[] = ai.getInteractionInfos();
-            System.out.println("<'" + ai_info[0] + "'>"
-                    + "<'" + ai_info[1] + "'>"
-                    + "<'" + ai_info[2] + "'>"
-                    + "<'" + ai_info[3] + "'>"
-                    + "<'" + ai_info[4] + "'>"
-                    + "<'" + ai_info[5] + "'>");
+        try {
+            FGMyJobs fgMyJobs = new FGMyJobs("151.97.41.48", "8888", "v1.0", "mtorrisi");
+            fgMyJobs.generateActiveInteractionLists();
+            System.out.println("DONE list:");
+            Vector<ActiveInteractions> doneList = fgMyJobs.getJobListDone();
+            for (Enumeration e = doneList.elements(); e.hasMoreElements();) {
+                ActiveInteractions ai = (ActiveInteractions) e.nextElement();
+                String ai_info[] = ai.getInteractionInfos();
+                System.out.println("<'" + ai_info[0] + "'>"
+                        + "<'" + ai_info[1] + "'>"
+                        + "<'" + ai_info[2] + "'>"
+                        + "<'" + ai_info[3] + "'>"
+                        + "<'" + ai_info[4] + "'>"
+                        + "<'" + ai_info[5] + "'>");
+            }
+            System.out.println("Others:");
+            Vector<ActiveInteractions> othersList = fgMyJobs.getJobList();
+            for (Enumeration e = othersList.elements(); e.hasMoreElements();) {
+                ActiveInteractions ai = (ActiveInteractions) e.nextElement();
+                String ai_info[] = ai.getInteractionInfos();
+                System.out.println("<'" + ai_info[0] + "'>"
+                        + "<'" + ai_info[1] + "'>"
+                        + "<'" + ai_info[2] + "'>"
+                        + "<'" + ai_info[3] + "'>"
+                        + "<'" + ai_info[4] + "'>"
+                        + "<'" + ai_info[5] + "'>");
+            }
+        } catch (FuturegatewayException ex) {
+            Logger.getLogger(FGMyJobs.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -222,22 +186,6 @@ class FGMyJobs {
             long taskId = Long.parseLong(DBid);
 
             result = createOutputArchive(taskId, path);
-//            if (archive != null) {
-//                _log("debug", archive.get("name").toString());
-//                URL website = new URL("http://" + fgHost + ":" + fgPort + "/" + fgVer + "/" + archive.get("url").toString());
-//
-//                File f = new File(path + "/" + PATH_SUFFIX + "/" + archive.get("name").toString());
-//                if (!f.exists()) {
-//                    _log("debug", "File: " + f.getName() + " doesn't exist. Downloading from: " + website);
-//                    ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-//                    FileOutputStream fos = new FileOutputStream(path + "/" + PATH_SUFFIX + "/" + archive.get("name").toString());
-//                    fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-//                }
-//                result = path + "/" + PATH_SUFFIX + "/" + archive.get("name").toString();
-//
-//            } else {
-//                throw new Exception("Archive URL not found for task: " + taskId);
-//            }
 
         } catch (NumberFormatException ex) {
             _log("error", ex.getMessage());
@@ -271,45 +219,91 @@ class FGMyJobs {
             } else {
                 _log("debug", "response code: " + conn.getResponseCode());
             }
-            jsonObject = (JSONObject) parser.parse(fgTaskInfo.toString());
+            result = test(parser, jsonObject, fgTaskInfo, path, taskId);
 
-            JSONArray jsonArray = (JSONArray) jsonObject.get("output_files");
-
-            File jobOutputFolder = new File(path + File.separator + PATH_SUFFIX);
-            if (!jobOutputFolder.exists()) {
-                jobOutputFolder.mkdirs();
-            }
-            File outputArchive = new File(path + File.separator + PATH_SUFFIX + File.separator + taskId + ".tgz");
-            if (!outputArchive.exists()) {
-                File jobOutputDirectory = new File(jobOutputFolder + File.separator + taskId);
-                if (jobOutputDirectory.mkdirs()) {
-                    for (Iterator it = jsonArray.iterator(); it.hasNext();) {
-                        JSONObject jsonOutput = (JSONObject) it.next();
-                        URL website = new URL("http://" + fgHost + ":" + fgPort + "/" + fgVer + "/" + jsonOutput.get("url").toString());
-                        _log("debug", "Downloading: " + jsonOutput.get("name"));
-                        ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-                        FileOutputStream fos = new FileOutputStream(jobOutputDirectory + File.separator + jsonOutput.get("name").toString());
-                        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-                    }
-                    Process creatingTar = Runtime.getRuntime().exec("tar czvf " + outputArchive + " --directory=" + jobOutputDirectory.getAbsolutePath() + " .");
-                    creatingTar.waitFor();
-                    Process deleteFolder = Runtime.getRuntime().exec("rm -Rf " + jobOutputDirectory.getAbsolutePath());
-                    deleteFolder.waitFor();
-                } else {
-                    _log("error", "error creating " + jobOutputDirectory.getAbsolutePath());
-                }
-            }
-
-            result = outputArchive.getAbsolutePath();
-
-        } catch (ParseException pex) {
-            _log("error", pex.getMessage());
         } catch (IOException ioex) {
             _log("error", ioex.getMessage());
+        } catch (ParseException ex) {
+            _log("error", ex.getMessage());
         } catch (InterruptedException ex) {
             _log("error", ex.getMessage());
         }
 
         return result;
     }
+
+    private String test(JSONParser parser, JSONObject jsonObject, StringBuilder fgTaskInfo, String path, long taskId) throws ParseException, MalformedURLException, IOException, InterruptedException {
+        jsonObject = (JSONObject) parser.parse(fgTaskInfo.toString());
+
+        JSONArray jsonArray = (JSONArray) jsonObject.get("output_files");
+
+        File jobOutputFolder = new File(path + File.separator + PATH_SUFFIX);
+        if (!jobOutputFolder.exists()) {
+            jobOutputFolder.mkdirs();
+        }
+        File outputArchive = new File(path + File.separator + PATH_SUFFIX + File.separator + taskId + ".tgz");
+        if (!outputArchive.exists()) {
+            File jobOutputDirectory = new File(jobOutputFolder + File.separator + taskId);
+            if (jobOutputDirectory.mkdirs()) {
+                for (Iterator it = jsonArray.iterator(); it.hasNext();) {
+                    JSONObject jsonOutput = (JSONObject) it.next();
+                    URL website = new URL("http://" + fgHost + ":" + fgPort + "/" + fgVer + "/" + jsonOutput.get("url").toString());
+                    _log("debug", "Downloading: " + jsonOutput.get("name"));
+                    ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+                    FileOutputStream fos = new FileOutputStream(jobOutputDirectory + File.separator + jsonOutput.get("name").toString());
+                    fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                }
+                Process creatingTar = Runtime.getRuntime().exec("tar czvf " + outputArchive + " --directory=" + jobOutputDirectory.getAbsolutePath() + " .");
+                creatingTar.waitFor();
+                Process deleteFolder = Runtime.getRuntime().exec("rm -Rf " + jobOutputDirectory.getAbsolutePath());
+                deleteFolder.waitFor();
+            } else {
+                _log("error", "error creating " + jobOutputDirectory.getAbsolutePath());
+            }
+        }
+
+        return outputArchive.getAbsolutePath();
+    }
+
+    private JSONObject callFutureGateway(String fgURL) throws FuturegatewayException {
+        JSONParser parser = new JSONParser();
+        JSONObject jsonObject = null;
+        StringBuilder fgAppInfo = new StringBuilder();
+        HttpURLConnection conn;
+        try {
+
+            URL deploymentEndpoint = new URL(fgURL);
+            conn = (HttpURLConnection) deploymentEndpoint.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("charset", "utf-8");
+            if (conn.getResponseCode() == 200) {
+                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                String ln;
+                while ((ln = br.readLine()) != null) {
+                    fgAppInfo.append(ln);
+                }
+            } else {
+                _log("warning", "response code: " + conn.getResponseCode());
+                throw new FuturegatewayException("Futuregateway replies with: " + conn.getResponseCode());
+            }
+            jsonObject = (JSONObject) parser.parse(fgAppInfo.toString());
+        } catch (ParseException pex) {
+            _log("error", pex.getMessage());
+            throw new FuturegatewayException(pex.getMessage());
+        } catch (IOException ioex) {
+            _log("error", ioex.getMessage());
+            throw new FuturegatewayException(ioex.getMessage());
+        }
+        return jsonObject;
+    }
+
+    public class FuturegatewayException extends Exception {
+
+        public FuturegatewayException(String message) {
+            super(message);
+        }
+
+    }
+
 }

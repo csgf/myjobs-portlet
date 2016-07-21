@@ -73,7 +73,6 @@ public class jobOutpuRetrive extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
 
-        boolean fg = false;
         String mode = java.net.URLDecoder.decode(request.getParameter("mode"), "UTF-8");
         String path = java.net.URLDecoder.decode(request.getParameter("Path"), "UTF-8");
 
@@ -93,7 +92,6 @@ public class jobOutpuRetrive extends HttpServlet {
                 String DBid = java.net.URLDecoder.decode(request.getParameter("DBid"), "UTF-8");
                 String futuregateway = java.net.URLDecoder.decode(request.getParameter("futuregateway"), "UTF-8");
                 if (futuregateway.equalsIgnoreCase("true")) {
-                    fg = true;
                     //TODO Add download tgz from FutureGateway
                     FGMyJobs fGMyJobs = new FGMyJobs("151.97.41.48", "8888", "v1.0", "");
                     fileName = fGMyJobs.downloadOutputs(DBid, path);
@@ -137,11 +135,6 @@ public class jobOutpuRetrive extends HttpServlet {
                     response.getOutputStream());
 
             fastChannelCopy(inputChannel, outputChannel);
-            
-            if (fg) {
-                File hiddenFile = new File(file.getParent() + File.separator + "." + file.getName());
-                FileUtil.move(file, hiddenFile);
-            }
         }
     }
 

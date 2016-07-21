@@ -92,10 +92,20 @@ public class MyJobs extends GenericPortlet {
             }
 
             FGMyJobs fgMyJobs = new FGMyJobs("151.97.41.48","8888","v1.0","mtorrisi");
-            fgMyJobs.generateActiveInteractionLists();
+            Vector<ActiveInteractions> othersList;
+            try {
+                fgMyJobs.generateActiveInteractionLists();
+                othersList = fgMyJobs.getJobList();
+                request.setAttribute("fg-error", "");
+                
+            } catch (FGMyJobs.FuturegatewayException ex) {
+                othersList = new Vector<ActiveInteractions>();
+                request.setAttribute("fg-error", "fg-error");
+                Logger.getLogger(MyJobs.class.getName()).log(Level.SEVERE, null, ex);
+            }
 //    System.out.println("DONE list:");
 //            Vector<ActiveInteractions> doneList = fgMyJobs.getJobListDone();
-            Vector<ActiveInteractions> othersList = fgMyJobs.getJobList();
+            
 
 //            doneList.addAll(utdbi.getDoneInteractionsByName(user.getScreenName()));
             othersList.addAll(utdbi.getActiveInteractionsByName(user.getScreenName()));
@@ -109,7 +119,7 @@ public class MyJobs extends GenericPortlet {
             Logger.getLogger(MyJobs.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SystemException ex) {
             Logger.getLogger(MyJobs.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        } 
 
         PortletRequestDispatcher dispatcher = getPortletContext().getRequestDispatcher("/WEB-INF/jsp/MyJobs_view.jsp");
         dispatcher.include(request, response);

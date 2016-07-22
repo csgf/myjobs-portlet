@@ -25,7 +25,6 @@
  */
 package it.infn.ct.MyJobs;
 
-import com.liferay.portal.kernel.util.FileUtil;
 import java.io.BufferedReader;
 import java.util.Enumeration;
 import java.io.IOException;
@@ -41,7 +40,7 @@ import it.infn.ct.GridEngine.UsersTracking.ActiveInteractions;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.MalformedURLException;
-import java.net.URLDecoder;
+import java.net.SocketTimeoutException;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.Iterator;
@@ -277,6 +276,7 @@ public class FGMyJobs {
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("charset", "utf-8");
+            conn.setConnectTimeout(5000);  // Myjobs tries to call FG and wait 5s otherwise skip FG jobs
             if (conn.getResponseCode() == 200) {
                 BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 String ln;
@@ -288,6 +288,9 @@ public class FGMyJobs {
                 throw new FuturegatewayException("Futuregateway replies with: " + conn.getResponseCode());
             }
             jsonObject = (JSONObject) parser.parse(fgAppInfo.toString());
+        } catch (SocketTimeoutException e) {
+            _log("error", e.getMessage());
+            throw new FuturegatewayException(e.getMessage());
         } catch (ParseException pex) {
             _log("error", pex.getMessage());
             throw new FuturegatewayException(pex.getMessage());

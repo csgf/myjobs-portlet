@@ -21,7 +21,6 @@ package it.infn.ct.MyJobs;
  * the License.
  * **************************************************************************
  */
-import com.liferay.portal.kernel.util.FileUtil;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -92,8 +91,10 @@ public class jobOutpuRetrive extends HttpServlet {
                 String DBid = java.net.URLDecoder.decode(request.getParameter("DBid"), "UTF-8");
                 String futuregateway = java.net.URLDecoder.decode(request.getParameter("futuregateway"), "UTF-8");
                 if (futuregateway.equalsIgnoreCase("true")) {
-                    //TODO Add download tgz from FutureGateway
-                    FGMyJobs fGMyJobs = new FGMyJobs("151.97.41.48", "8888", "v1.0", "");
+                    String fgHost = java.net.URLDecoder.decode(request.getParameter("fgHost"), "UTF-8");
+                    String fgPort = java.net.URLDecoder.decode(request.getParameter("fgPort"), "UTF-8");
+                    String fgAPIVer = java.net.URLDecoder.decode(request.getParameter("fgAPIVer"), "UTF-8");
+                    FGMyJobs fGMyJobs = new FGMyJobs(fgHost, fgPort, fgAPIVer, "");
                     fileName = fGMyJobs.downloadOutputs(DBid, path);
                 } else {
                     fileName = path + tmpJSaga.getJobOutput(Integer.parseInt(DBid));

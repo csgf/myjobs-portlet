@@ -68,6 +68,16 @@
     String tabs1 = ParamUtil.getString(request, "tabs1", "Active Jobs List");
     PortletURL url = renderResponse.createRenderURL();
     pageContext.setAttribute("tabs1", tabs1);
+    
+    boolean fgEnabled = portletPreferences.getValue("fgEnabled", "").equals("true");
+    String fgHost = "";
+    String fgPort = "";
+    String fgAPIVer = "";
+    if (fgEnabled){
+        fgHost = portletPreferences.getValue("fgHost", "");
+        fgPort = portletPreferences.getValue("fgPort", "");
+        fgAPIVer = portletPreferences.getValue("fgAPIVer", "");
+    }
 
 %>
 
@@ -355,8 +365,13 @@ url="<%= url.toString()%>"
                         }
                         String status = ai.getInteractionInfos()[5];
                         if (status.equals("DONE")) {
+                            String fgParams = "";
                             
-                            String URL = renderRequest.getContextPath() + "/jobOutpuRetrive?mode=single&futuregateway="+ai.getInteractionInfos()[1].equals("FutureGateway")+"&DBid=" + java.net.URLEncoder.encode(ai.getInteractionInfos()[0], "UTF-8")
+                            if(ai.getInteractionInfos()[1].equals("FutureGateway") && fgEnabled){
+                                fgParams = "&fgHost=" + fgHost + "&fgPort=" + fgPort + "&fgAPIVer=" + fgAPIVer;
+                            }
+                            
+                            String URL = renderRequest.getContextPath() + "/jobOutpuRetrive?mode=single&futuregateway="+ai.getInteractionInfos()[1].equals("FutureGateway")+fgParams+"&DBid=" + java.net.URLEncoder.encode(ai.getInteractionInfos()[0], "UTF-8")
                                     + "&Path=" + java.net.URLEncoder.encode("/tmp", "UTF-8");
                             String UrlColl = renderRequest.getContextPath() + "/jobOutpuRetrive?mode=collection&DBid=" + java.net.URLEncoder.encode(ai.getInteractionInfos()[0], "UTF-8")
                                     + "&Path=" + java.net.URLEncoder.encode("/tmp", "UTF-8");

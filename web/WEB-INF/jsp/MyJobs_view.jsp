@@ -119,7 +119,7 @@ names="<%= tabNames%>"
 url="<%= url.toString()%>"
     />
 
-<c:if test="<%=!fgError.isEmpty()%>">
+<c:if test="<%= fgError != null && !fgError.isEmpty()%>">
     <div class="portlet-msg-info">
         <liferay-ui:message key="Unable to contact Futuregateway" />
     </div>

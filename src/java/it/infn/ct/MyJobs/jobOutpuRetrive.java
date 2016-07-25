@@ -34,9 +34,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
-import com.liferay.portal.model.User;
-import com.liferay.portal.service.UserServiceUtil;
-import com.liferay.portal.util.PortalUtil;
 
 /**
  *
@@ -64,9 +61,8 @@ public class jobOutpuRetrive extends HttpServlet {
     }
 
     /**
-     * Processes requests for both HTTP
-     * <code>GET</code> and
-     * <code>POST</code> methods.
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
      *
      * @param request servlet request
      * @param response servlet response
@@ -78,7 +74,6 @@ public class jobOutpuRetrive extends HttpServlet {
 
         String mode = java.net.URLDecoder.decode(request.getParameter("mode"), "UTF-8");
         String path = java.net.URLDecoder.decode(request.getParameter("Path"), "UTF-8");
-        
 
         String fileName = null;
 
@@ -90,11 +85,20 @@ public class jobOutpuRetrive extends HttpServlet {
             UsersTrackingDBInterface tracking = new UsersTrackingDBInterface();
             fileName = tracking.createAllJobsArchive(cn, path);
         } else {
- 
+
             if (mode.equals("single")) {
 
                 String DBid = java.net.URLDecoder.decode(request.getParameter("DBid"), "UTF-8");
-                fileName = path + tmpJSaga.getJobOutput(Integer.parseInt(DBid));
+                String futuregateway = java.net.URLDecoder.decode(request.getParameter("futuregateway"), "UTF-8");
+                if (futuregateway.equalsIgnoreCase("true")) {
+                    String fgHost = java.net.URLDecoder.decode(request.getParameter("fgHost"), "UTF-8");
+                    String fgPort = java.net.URLDecoder.decode(request.getParameter("fgPort"), "UTF-8");
+                    String fgAPIVer = java.net.URLDecoder.decode(request.getParameter("fgAPIVer"), "UTF-8");
+                    FGMyJobs fGMyJobs = new FGMyJobs(fgHost, fgPort, fgAPIVer, "");
+                    fileName = fGMyJobs.downloadOutputs(DBid, path);
+                } else {
+                    fileName = path + tmpJSaga.getJobOutput(Integer.parseInt(DBid));
+                }
             }
             if (mode.equals("set")) {
                 UsersTrackingDBInterface tracking = new UsersTrackingDBInterface();
@@ -105,12 +109,14 @@ public class jobOutpuRetrive extends HttpServlet {
                 String DBid = java.net.URLDecoder.decode(request.getParameter("DBid"), "UTF-8");
                 fileName = path + tmpJSaga.getCollectionOutput(Integer.parseInt(DBid));
             }
-            
+
         }
-        
+
         File file = new File(fileName);
 
-        if ((!file.isDirectory()) && file.exists() ) {
+        System.out.println("!!!!" + file.getName());
+
+        if ((!file.isDirectory()) && file.exists()) {
 
             String contentType = getServletContext().getMimeType(file.getName());
 
@@ -130,14 +136,12 @@ public class jobOutpuRetrive extends HttpServlet {
                     response.getOutputStream());
 
             fastChannelCopy(inputChannel, outputChannel);
-
         }
     }
 
 // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
-     * Handles the HTTP
-     * <code>GET</code> method.
+     * Handles the HTTP <code>GET</code> method.
      *
      * @param request servlet request
      * @param response servlet response
@@ -151,8 +155,7 @@ public class jobOutpuRetrive extends HttpServlet {
     }
 
     /**
-     * Handles the HTTP
-     * <code>POST</code> method.
+     * Handles the HTTP <code>POST</code> method.
      *
      * @param request servlet request
      * @param response servlet response

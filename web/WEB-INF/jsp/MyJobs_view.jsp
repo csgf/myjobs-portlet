@@ -48,6 +48,7 @@
 <%@page import="javax.portlet.*"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@taglib prefix="liferay-ui" uri="http://liferay.com/tld/ui" %>
+<%@taglib prefix="aui" uri="http://liferay.com/tld/aui"%>
 <%@taglib prefix="portlet" uri="http://java.sun.com/portlet_2_0" %>
 <portlet:defineObjects />
 <style type="text/css">
@@ -67,6 +68,16 @@
     String tabs1 = ParamUtil.getString(request, "tabs1", "Active Jobs List");
     PortletURL url = renderResponse.createRenderURL();
     pageContext.setAttribute("tabs1", tabs1);
+    
+    boolean fgEnabled = portletPreferences.getValue("fgEnabled", "").equals("true");
+    String fgHost = "";
+    String fgPort = "";
+    String fgAPIVer = "";
+    if (fgEnabled){
+        fgHost = portletPreferences.getValue("fgHost", "");
+        fgPort = portletPreferences.getValue("fgPort", "");
+        fgAPIVer = portletPreferences.getValue("fgAPIVer", "");
+    }
 
 %>
 
@@ -78,7 +89,7 @@
         }
 
         public boolean apply(ActiveInteractions ai) {
-            return value.equals(ai.getInteractionInfos()[1]);
+            return value.equals(ai.getInteractionInfos()[1]) || "FutureGateway".equals(ai.getInteractionInfos()[1]);
         }
         private String value;
     }
@@ -100,12 +111,19 @@
     Vector<ActiveInteractions> aiList = (Vector<ActiveInteractions>) request.getAttribute("jobList");
     Vector<ActiveInteractions> aiListDone = (Vector<ActiveInteractions>) request.getAttribute("jobListdone");
     Company company = PortalUtil.getCompany(request);
+    String fgError = (String) request.getAttribute("fg-error");
 %>
 
 <liferay-ui:tabs
 names="<%= tabNames%>"
 url="<%= url.toString()%>"
     />
+
+<c:if test="<%= fgError != null && !fgError.isEmpty()%>">
+    <div class="portlet-msg-info">
+        <liferay-ui:message key="Unable to contact Futuregateway" />
+    </div>
+</c:if>
 <c:choose>
     <c:when test="${tabs1 == 'Active Jobs List'}" >
         <script type="text/javascript">
@@ -254,6 +272,27 @@ url="<%= url.toString()%>"
            
             
         </script>
+<aui:script>
+    Liferay.provide(
+	window,
+	'openPopUp',
+	function() {
+		var A = AUI(); 	
+		var dialog = new A.Dialog(
+			{
+                        bodyContent: '<p>Your download will start soon.</p><p>You can close this message at any moment, download process will continue in background.</p>',
+				destroyOnClose: true,
+                                centered: true,
+                                resizable: false,
+				modal: true,
+				title: 'Download',
+				width: 300
+			}
+		).render();
+	},
+	['aui-dialog']
+    ); 
+</aui:script>
         <%
             boolean supportsGateway = false;
 
@@ -321,12 +360,18 @@ url="<%= url.toString()%>"
                             
                         }
 
-                        if (!ai.getInteractionInfos()[1].equals(company.getName())) {
+                        if (!ai.getInteractionInfos()[1].equals("FutureGateway") && !ai.getInteractionInfos()[1].equals(company.getName())) {
                             continue;
                         }
                         String status = ai.getInteractionInfos()[5];
                         if (status.equals("DONE")) {
-                            String URL = renderRequest.getContextPath() + "/jobOutpuRetrive?mode=single&DBid=" + java.net.URLEncoder.encode(ai.getInteractionInfos()[0], "UTF-8")
+                            String fgParams = "";
+                            
+                            if(ai.getInteractionInfos()[1].equals("FutureGateway") && fgEnabled){
+                                fgParams = "&fgHost=" + fgHost + "&fgPort=" + fgPort + "&fgAPIVer=" + fgAPIVer;
+                            }
+                            
+                            String URL = renderRequest.getContextPath() + "/jobOutpuRetrive?mode=single&futuregateway="+ai.getInteractionInfos()[1].equals("FutureGateway")+fgParams+"&DBid=" + java.net.URLEncoder.encode(ai.getInteractionInfos()[0], "UTF-8")
                                     + "&Path=" + java.net.URLEncoder.encode("/tmp", "UTF-8");
                             String UrlColl = renderRequest.getContextPath() + "/jobOutpuRetrive?mode=collection&DBid=" + java.net.URLEncoder.encode(ai.getInteractionInfos()[0], "UTF-8")
                                     + "&Path=" + java.net.URLEncoder.encode("/tmp", "UTF-8");
@@ -350,7 +395,7 @@ url="<%= url.toString()%>"
                         %>
                         <a href="<%=UrlColl%>"><img   onmouseover=""src="<%=renderRequest.getContextPath()%>/datatables/media/images/download.png" width="24" height="24" /></a></td>
                     <% } else {%>
-                         <a href="<%=URL%>"><img onmouseover=""src="<%=renderRequest.getContextPath()%>/datatables/media/images/download.png" width="24" height="24" /></a></td>   
+                        <a href="<%=URL%>"><img onmouseover="" onclick="openPopUp()" src="<%=renderRequest.getContextPath()%>/datatables/media/images/download.png" width="24" height="24" /></a></td>   
                     <% }%>
                 </tr>
                 <%
@@ -484,7 +529,7 @@ url="<%= url.toString()%>"
                 
 
                     for (ActiveInteractions aidone : aiListDone) {
-                        if (!aidone.getInteractionInfos()[1].equals(company.getName())) {
+                        if (!aidone.getInteractionInfos()[1].equals("FutureGateway") && !aidone.getInteractionInfos()[1].equals(company.getName())) {
                             continue;
                         }
 

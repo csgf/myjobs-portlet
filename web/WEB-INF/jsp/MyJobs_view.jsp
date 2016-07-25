@@ -280,13 +280,13 @@ url="<%= url.toString()%>"
 		var A = AUI(); 	
 		var dialog = new A.Dialog(
 			{
-                                bodyContent: '<p>Your download will start soon.</p>',
+                        bodyContent: '<p>Your download will start soon.</p><p>You can close this message at any moment, download process will continue in background.</p>',
 				destroyOnClose: true,
                                 centered: true,
                                 resizable: false,
 				modal: true,
 				title: 'Download',
-				width: 200
+				width: 300
 			}
 		).render();
 	},

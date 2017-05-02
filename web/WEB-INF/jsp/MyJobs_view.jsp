@@ -375,7 +375,6 @@ url="<%= url.toString()%>"
                                     + "&Path=" + java.net.URLEncoder.encode("/tmp", "UTF-8");
                             String UrlColl = renderRequest.getContextPath() + "/jobOutpuRetrive?mode=collection&DBid=" + java.net.URLEncoder.encode(ai.getInteractionInfos()[0], "UTF-8")
                                     + "&Path=" + java.net.URLEncoder.encode("/tmp", "UTF-8");
-                            System.out.println("#######prova log ##########ritaaaaaaaaaa" + ai.toString());
                 %>
                 <tr><td>
 

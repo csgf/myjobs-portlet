@@ -123,7 +123,7 @@ public class FGMyJobs {
                 JSONObject appInfo = fgAppInfo(app_id);
                 String task_id = (String) taskInfo.get("id");
                 String app_name = (String) appInfo.get("name");
-                String app_desc = (String) appInfo.get("description");
+                String app_desc = ((String) taskInfo.get("description")).isEmpty() ? (String) appInfo.get("name") : (String) taskInfo.get("description");
                 String outcome = (String) appInfo.get("outcome");
                 _log("debug",
                         "status: '" + status + "' "
